@@ -62,6 +62,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_linear_datepicker:
+    dependency: "direct main"
+    description:
+      name: flutter_linear_datepicker
+      sha256: "8cd3271d23809a6b55a1367c00d74975b2bd2b0099a3d41193eaea64dce3277f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.1"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -139,6 +147,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.16.0"
+  nepali_date_picker:
+    dependency: "direct main"
+    description:
+      name: nepali_date_picker
+      sha256: "89fb43109c144089f2592754336c7a6e60a035cfdf47260d576df346e61eae34"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.1"
+  nepali_utils:
+    dependency: transitive
+    description:
+      name: nepali_utils
+      sha256: "686ac878ca844e0ec264a7c0da6404ab7992db5b9120d3ffe1356a3b1de266f4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.8"
   path:
     dependency: transitive
     description:
@@ -147,6 +171,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.9.1"
+  shamsi_date:
+    dependency: transitive
+    description:
+      name: shamsi_date
+      sha256: "4614789ed11bfffe5ba0aa157a20f2857ab6328528401766e0d924e453c866bd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
   sky_engine:
     dependency: transitive
     description: flutter

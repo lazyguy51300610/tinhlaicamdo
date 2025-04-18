@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -37,6 +35,7 @@ class _MyHomePageState extends State<_MyHomePage> {
   DateTime? _dateFrom;
   DateTime _dateTo = DateTime.now();
   int _amount = 0;
+  int _interestRate = 4;
 
   @override
   Widget build(BuildContext context) {
@@ -62,12 +61,13 @@ class _MyHomePageState extends State<_MyHomePage> {
                 ),
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 onChanged: (value) {
-                  
                   _amount = int.parse(value.replaceAll(",", ""));
                   _amountController.text = numberFormater.format(_amount);
-                  _amountController.selection = TextSelection(baseOffset: _amountController.value.text.length, extentOffset: _amountController.value.text.length);
+                  _amountController.selection = TextSelection(
+                    baseOffset: _amountController.value.text.length,
+                    extentOffset: _amountController.value.text.length,
+                  );
                 },
-                
               ),
             ),
             SizedBox(
@@ -124,14 +124,9 @@ class _MyHomePageState extends State<_MyHomePage> {
   void _calculate() {
     var dateFrom = _formatDate(_dateFrom!);
     var dateTo = _formatDate(_dateTo);
-    var nDate = _dateTo.difference(_dateFrom!).inDays.toString();
-    var interestRate = "4%";
-    var amount = _amountController.text;
-    var interest = "267,000";
-    var total = "1,267,000";
-
-    log("dateFrom = $dateFrom");
-    log("dateTo = $dateTo");
+    var nDate = _dateTo.difference(_dateFrom!).inDays;
+    var interest = _amount * _interestRate * 0.01 / 30 * nDate;
+    var total = _amount + interest;
 
     Navigator.push(
       context,
@@ -141,11 +136,11 @@ class _MyHomePageState extends State<_MyHomePage> {
               data: Data(
                 dateFrom,
                 dateTo,
-                nDate,
-                interestRate,
-                amount,
-                interest,
-                total,
+                nDate.toString(),
+                _interestRate.toString(),
+                numberFormater.format(_amount),
+                numberFormater.format(interest),
+                numberFormater.format(total),
               ),
             ),
       ),

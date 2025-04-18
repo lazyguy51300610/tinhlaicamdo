@@ -12,7 +12,7 @@ const FONT_SIZE = 20.0;
 const QR_LINK =
     "https://img.vietqr.io/image/KIENLONGBANK-TVHUYNH-qr_only.png?amount={amount}&addInfo=CK&accountName=NGUYEN%20VAN%20DUY";
 
-const FORMULA =
+const FORMULA_QR_LINK =
     "https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.png?amount=<AMOUNT>&addInfo=<DESCRIPTION>&accountName=<ACCOUNT_NAME>";
 
 const FORMULA_BANK_ID = "<BANK_ID>";
@@ -38,7 +38,15 @@ class Data {
   final String interest;
   final String total;
 
-  Data(this.dateFrom, this.dateTo, this.nDate, this.interestRate, this.amount, this.interest, this.total);
+  Data(
+    this.dateFrom,
+    this.dateTo,
+    this.nDate,
+    this.interestRate,
+    this.amount,
+    this.interest,
+    this.total,
+  );
 }
 
 class ResultPage extends StatelessWidget {
@@ -48,14 +56,19 @@ class ResultPage extends StatelessWidget {
 
   Widget myRowTemplate(String valueCell1, String valueCell2) => Container(
     margin: EdgeInsets.symmetric(vertical: MARGIN_VERTICAL),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [myCell1(valueCell1), myCell2(valueCell2)],
+    child: Container(
+      // color: Colors.pinkAccent,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [myCell1(valueCell1), myCell2(valueCell2)],
+      ),
     ),
   );
 
   Widget myCell1(final String value) => Container(
+    // color: Colors.amberAccent,
     margin: EdgeInsets.only(left: 50),
+    alignment: Alignment.centerLeft,
     width: 300,
     child: Text(
       value,
@@ -64,6 +77,7 @@ class ResultPage extends StatelessWidget {
   );
 
   Widget myCell2(final String value) => Container(
+    // color: Colors.blueAccent,
     margin: EdgeInsets.only(right: 50),
     alignment: Alignment.centerRight,
     width: 200,
@@ -77,45 +91,57 @@ class ResultPage extends StatelessWidget {
         title: const Text('Kết quả'),
         backgroundColor: Colors.teal[100],
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          myRowTemplate("Ngày cầm đồ", data.dateFrom),
-          myRowTemplate("Ngày chuột đồ", data.dateTo),
-          myRowTemplate("Số ngày chịu lãi", data.nDate),
+      body: Container(
+        margin: EdgeInsets.only(top: 50),
+        // color: Colors.redAccent,
+        child: Column(
+          children: [
+            myRowTemplate("Ngày cầm đồ", data.dateFrom),
+            myRowTemplate("Ngày chuột đồ", data.dateTo),
+            myRowTemplate("Số ngày chịu lãi", data.nDate),
 
-          Container(
-            height: 1,
-            width: COLUMNS_WIDTH,
-            margin: EdgeInsets.all(MARGIN_VERTICAL),
-            color: Colors.black,
-          ),
+            Container(
+              height: 1,
+              width: COLUMNS_WIDTH,
+              margin: EdgeInsets.all(MARGIN_VERTICAL),
+              color: Colors.black,
+            ),
 
-          myRowTemplate("Lãi suất", data.interestRate),
-          myRowTemplate("Số tiền", data.amount),
-          myRowTemplate("Lãi", data.interest),
+            myRowTemplate("Lãi suất", data.interestRate),
+            myRowTemplate("Số tiền", data.amount),
+            myRowTemplate("Lãi", data.interest),
 
-          Container(
-            height: 1,
-            width: COLUMNS_WIDTH,
-            margin: EdgeInsets.all(MARGIN_VERTICAL),
-            color: Colors.black,
-          ),
+            Container(
+              height: 1,
+              width: COLUMNS_WIDTH,
+              margin: EdgeInsets.all(MARGIN_VERTICAL),
+              color: Colors.black,
+            ),
 
-          myRowTemplate("Tổng cộng", data.total),
+            myRowTemplate("Tổng cộng", data.total),
 
-          Container(
-            margin: EdgeInsets.all(70),
-            child: Center(
-              child: const Image(
-                image: NetworkImage(QR_LINK),
-                height: 150,
-                fit: BoxFit.fill,
+            Container(
+              margin: EdgeInsets.all(70),
+              child: Center(
+                child: Image(
+                  image: NetworkImage(_getQRLink()),
+                  height: 150,
+                  fit: BoxFit.fill,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+
+  String _getQRLink() => FORMULA_QR_LINK
+      .replaceAll(FORMULA_BANK_ID, BANK_ID)
+      .replaceAll(FORMULA_ACCOUNT_NO, ACCOUNT_NO)
+      .replaceAll(FORMULA_TEMPLATE, TEMPLATE)
+      .replaceAll(FORMULA_ACCOUNT_NO, ACCOUNT_NO)
+      .replaceAll(FORMULA_AMOUNT, data.total)
+      .replaceAll(FORMULA_DESCRIPTION, DESCRIPTION)
+      .replaceAll(FORMULA_ACCOUNT_NAME, ACCOUNT_NAME);
 }
