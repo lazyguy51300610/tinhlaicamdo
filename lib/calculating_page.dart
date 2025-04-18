@@ -1,3 +1,4 @@
+import 'package:date_picker_plus/date_picker_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -78,8 +79,9 @@ class _MyHomePageState extends State<_MyHomePage> {
                 readOnly: true,
                 onTap:
                     () => _selectDate(
+                      context,
                       _dateFromController,
-                    ).then((result) => _dateFrom = result),
+                    ).then((value) => _dateFrom = value),
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.calendar_today),
@@ -95,6 +97,7 @@ class _MyHomePageState extends State<_MyHomePage> {
                 readOnly: true,
                 onTap:
                     () => _selectDate(
+                      context,
                       _dateToController,
                     ).then((result) => _dateTo = result!),
                 decoration: const InputDecoration(
@@ -147,12 +150,17 @@ class _MyHomePageState extends State<_MyHomePage> {
     );
   }
 
-  Future<DateTime?> _selectDate(TextEditingController controller) async {
-    DateTime? picked = await showDatePicker(
+  Future<DateTime?> _selectDate(
+    BuildContext context,
+    TextEditingController controller,
+  ) async {
+    final picked = await showDatePickerDialog(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
+      minDate: DateTime(1900),
+      maxDate: DateTime(2100),
+      width: 500,
+      height: 500,
     );
 
     if (picked != null) {

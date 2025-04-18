@@ -1,5 +1,6 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 const MARGIN_VERTICAL = 2.0;
 const COLUMN_1_WIDTH = 200.0;
@@ -86,6 +87,7 @@ class ResultPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    log(_getQRLink());
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kết quả'),
@@ -141,7 +143,7 @@ class ResultPage extends StatelessWidget {
       .replaceAll(FORMULA_ACCOUNT_NO, ACCOUNT_NO)
       .replaceAll(FORMULA_TEMPLATE, TEMPLATE)
       .replaceAll(FORMULA_ACCOUNT_NO, ACCOUNT_NO)
-      .replaceAll(FORMULA_AMOUNT, data.total)
+      .replaceAll(FORMULA_AMOUNT, data.total.replaceAll(",", ""))
       .replaceAll(FORMULA_DESCRIPTION, DESCRIPTION)
       .replaceAll(FORMULA_ACCOUNT_NAME, ACCOUNT_NAME);
 }
