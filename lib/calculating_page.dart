@@ -46,85 +46,89 @@ class _MyHomePageState extends State<_MyHomePage> {
         backgroundColor: primaryColor,
       ),
       body: Center(
-        child: ListView(
-          padding: const EdgeInsets.all(50.0),
-          children: <Widget>[
-            SizedBox(
-              height: 70,
-              child: TextField(
-                controller: _amountController,
-                textAlign: TextAlign.right,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.money),
-                  labelText: "Số tiền",
-                ),
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onChanged: (value) {
-                  _amount = int.parse(value.replaceAll(",", ""));
-                  _amountController.text = numberFormater.format(_amount);
-                  _amountController.selection = TextSelection(
-                    baseOffset: _amountController.value.text.length,
-                    extentOffset: _amountController.value.text.length,
-                  );
-                },
-              ),
-            ),
-            SizedBox(
-              height: 70,
-              child: TextField(
-                controller: _dateFromController,
-                textAlign: TextAlign.right,
-                readOnly: true,
-                onTap:
-                    () => _selectDate(
-                      context,
-                      _dateFromController,
-                    ).then((value) => _dateFrom = value),
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.calendar_today),
-                  labelText: "Ngày cầm đồ",
+        child: Container(
+          margin: const EdgeInsets.all(50.0),
+          width: 500,
+          child: Column(
+            children: [
+              SizedBox(
+                height: 70,
+                child: TextField(
+                  controller: _amountController,
+                  textAlign: TextAlign.right,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.money),
+                    labelText: "Số tiền",
+                  ),
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  onChanged: (value) {
+                    _amount = int.parse(value.replaceAll(",", ""));
+                    _amountController.text = numberFormater.format(_amount);
+                    _amountController.selection = TextSelection(
+                      baseOffset: _amountController.value.text.length,
+                      extentOffset: _amountController.value.text.length,
+                    );
+                  },
                 ),
               ),
-            ),
-            SizedBox(
-              height: 70,
-              child: TextField(
-                controller: _dateToController,
-                textAlign: TextAlign.right,
-                readOnly: true,
-                onTap:
-                    () => _selectDate(
-                      context,
-                      _dateToController,
-                    ).then((result) => _dateTo = result!),
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.calendar_today),
-                  labelText: "Ngày chuột đồ",
+              SizedBox(
+                height: 70,
+                child: TextField(
+                  controller: _dateFromController,
+                  textAlign: TextAlign.right,
+                  readOnly: true,
+                  onTap:
+                      () => _selectDate(
+                        context,
+                        _dateFromController,
+                      ).then((value) => _dateFrom = value),
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.calendar_today),
+                    labelText: "Ngày cầm đồ",
+                  ),
                 ),
               ),
-            ),
-            OutlinedButton(
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(primaryColor),
-                padding: WidgetStateProperty.all(EdgeInsets.all(20)),
+              SizedBox(
+                height: 70,
+                child: TextField(
+                  controller: _dateToController,
+                  textAlign: TextAlign.right,
+                  readOnly: true,
+                  onTap:
+                      () => _selectDate(
+                        context,
+                        _dateToController,
+                      ).then((result) => _dateTo = result!),
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.calendar_today),
+                    labelText: "Ngày chuột đồ",
+                  ),
+                ),
               ),
-              onPressed: _calculate,
-              child: Text(
-                'Tính Lãi',
-                style: TextStyle(fontSize: 15, color: Colors.white),
+              OutlinedButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(primaryColor),
+                  padding: WidgetStateProperty.all(EdgeInsets.all(20)),
+                ),
+                onPressed: _onCalculatePressed,
+                child: Text(
+                  'Tính Lãi',
+                  style: TextStyle(fontSize: 20, color: Colors.white),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  void _calculate() {
+
+  void _onCalculatePressed() {
     var dateFrom = _formatDate(_dateFrom!);
     var dateTo = _formatDate(_dateTo);
     var nDate = _dateTo.difference(_dateFrom!).inDays;

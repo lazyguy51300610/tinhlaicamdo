@@ -57,12 +57,9 @@ class ResultPage extends StatelessWidget {
 
   Widget myRowTemplate(String valueCell1, String valueCell2) => Container(
     margin: EdgeInsets.symmetric(vertical: MARGIN_VERTICAL),
-    child: Container(
-      // color: Colors.pinkAccent,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [myCell1(valueCell1), myCell2(valueCell2)],
-      ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [myCell1(valueCell1), myCell2(valueCell2)],
     ),
   );
 
@@ -70,7 +67,7 @@ class ResultPage extends StatelessWidget {
     // color: Colors.amberAccent,
     margin: EdgeInsets.only(left: 50),
     alignment: Alignment.centerLeft,
-    width: 300,
+    width: 200,
     child: Text(
       value,
       style: TextStyle(fontSize: FONT_SIZE, fontWeight: FontWeight.bold),
