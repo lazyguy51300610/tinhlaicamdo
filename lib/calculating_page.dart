@@ -9,25 +9,15 @@ import 'result_page.dart';
 
 const primaryColor = Color.fromARGB(255, 18, 180, 82);
 
-class CalculatingPage extends StatelessWidget {
+
+class CalculatingPage extends StatefulWidget {
   const CalculatingPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const _MyHomePage(title: 'Tính lãi Cầm Đồ');
-  }
+  State<CalculatingPage> createState() => _MyHomePageState();
 }
 
-class _MyHomePage extends StatefulWidget {
-  const _MyHomePage({required this.title});
-
-  final String title;
-
-  @override
-  State<_MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<_MyHomePage> {
+class _MyHomePageState extends State<CalculatingPage> {
   final TextEditingController _amountController = TextEditingController();
 
   final TextEditingController _dateFromController = TextEditingController();
@@ -158,7 +148,7 @@ class _MyHomePageState extends State<_MyHomePage> {
       MaterialPageRoute(
         builder:
             (context) => ResultPage(
-              data: Data(
+              myData: Data(
                 dateFrom,
                 dateTo,
                 nDate.toString(),

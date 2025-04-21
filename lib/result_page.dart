@@ -6,19 +6,19 @@ import 'package:share_plus/share_plus.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
 
 const MARGIN_VERTICAL = 2.0;
-const COLUMN_1_WIDTH = 200.0;
-const COLUMN_2_WIDTH = 300.0;
+const COLUMN_1_WIDTH = 150.0;
+const COLUMN_2_WIDTH = 150.0;
 const COLUMNS_WIDTH = COLUMN_1_WIDTH + COLUMN_2_WIDTH;
 
 const primaryColor = Color.fromARGB(255, 18, 180, 82);
 
 // ignore: constant_identifier_names
-const FONT_SIZE = 15.0;
+const primaryFontSize = 20.0;
 
 const QR_LINK =
     "https://img.vietqr.io/image/KIENLONGBANK-TVHUYNH-qr_only.png?amount={amount}&addInfo=CK&accountName=NGUYEN%20VAN%20DUY";
 
-const FORMULA_QR_LINK =
+const formulaQRLink =
     "https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.png?amount=<AMOUNT>&addInfo=<DESCRIPTION>&accountName=<ACCOUNT_NAME>";
 
 const FORMULA_BANK_ID = "<BANK_ID>";
@@ -56,18 +56,19 @@ class Data {
 }
 
 class ResultPage extends StatefulWidget {
-  ResultPage({super.key, required this.data});
+  const ResultPage({super.key, required this.myData});
 
-  final Data data;
+  final Data myData;
 
   @override
-  State<StatefulWidget> createState() => ResultPageState(data: data);
+  State<StatefulWidget> createState() => ResultPageState(data: myData);
 }
 
 class ResultPageState extends State<ResultPage> {
   ResultPageState({required this.data});
 
   final Data data;
+
   final WidgetsToImageController _imageController = WidgetsToImageController();
 
   Uint8List? _bytes;
@@ -81,39 +82,30 @@ class ResultPageState extends State<ResultPage> {
   );
 
   Widget myCell1(final String value) => Container(
-    // color: Colors.amberAccent,
-    margin: EdgeInsets.only(left: 50),
     alignment: Alignment.centerLeft,
-    width: 150,
-    child: Text(
-      value,
-      style: TextStyle(fontSize: FONT_SIZE, fontWeight: FontWeight.bold),
-    ),
+    width: COLUMN_1_WIDTH,
+    child: Text(value, style: TextStyle(fontSize: primaryFontSize, fontWeight: FontWeight.bold)),
   );
 
   Widget myCell2(final String value) => Container(
-    // color: Colors.blueAccent,
-    margin: EdgeInsets.only(right: 50),
     alignment: Alignment.centerRight,
-    width: 200,
-    child: Text(value, style: TextStyle(fontSize: FONT_SIZE)),
+    width: COLUMN_2_WIDTH,
+    child: Text(value, style: TextStyle(fontSize: primaryFontSize)),
   );
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kết quả'),
-        backgroundColor: primaryColor,
-        actions: [IconButton(onPressed: () {}, icon: Icon(Icons.share))],
-      ),
-      body: WidgetsToImage(controller: _imageController, child: _billCard()),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: const Text('Kết quả'),
+      backgroundColor: primaryColor,
+      actions: [IconButton(onPressed: () {}, icon: Icon(Icons.share))],
+    ),
+    body: WidgetsToImage(controller: _imageController, child: _billCard(context)),
+  );
 
   Widget _buildImage(Uint8List bytes) => Image.memory(bytes);
 
-  Widget _billCard() => Padding(
+  Widget _billCard(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 60),
     child: Column(
       children: [
@@ -142,17 +134,81 @@ class ResultPageState extends State<ResultPage> {
         myRowTemplate("Tổng cộng", data.total),
 
         Container(
-          margin: EdgeInsets.only(top: 70),
-          child: Center(
-            child: Image(
-              image: NetworkImage(_getQRLink()),
-              height: 150,
-              fit: BoxFit.fill,
-            ),
+          margin: EdgeInsets.only(top: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 10),
+                child: OutlinedButton(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all(primaryColor),
+                    padding: WidgetStateProperty.all(
+                      EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                    ),
+                  ),
+                  onPressed: () => _showInterestQR(context),
+                  child: Text("Đóng lãi", style: TextStyle(fontSize: 20, color: Colors.white)),
+                ),
+              ),
+
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 10),
+                child: OutlinedButton(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all(primaryColor),
+                    padding: WidgetStateProperty.all(
+                      EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                    ),
+                  ),
+                  onPressed: () => _showTotalQR(context),
+                  child: Text("Chuột đồ", style: TextStyle(fontSize: 20, color: Colors.white)),
+                ),
+              ),
+            ],
           ),
         ),
       ],
     ),
+  );
+
+  void _showTotalQR(BuildContext context) {
+    var amount = data.total.replaceAll(",", "");
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => ListView(children: [_transferQR(amount), _transferInfo(amount)]),
+    );
+  }
+
+  void _showInterestQR(BuildContext context) {
+    var amount = data.interest.replaceAll(",", "");
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => ListView(children: [_transferQR(amount), _transferInfo(amount)]),
+    );
+  }
+
+  Widget _transferQR(String amount) => Container(
+    margin: EdgeInsets.only(top: 70),
+    child: Center(
+      child: Image(image: NetworkImage(_getQRLink(amount)), height: 150, fit: BoxFit.fill),
+    ),
+  );
+
+  Widget _transferInfo(String amount) => GridView.count(
+    crossAxisCount: 2,
+    shrinkWrap: true,
+    
+    children: [
+      Text("Ngân hàng:"),
+      Text(BANK_ID),
+      Text("STK:"),
+      Text(ACCOUNT_NO),
+      Text("Chủ TK:"),
+      Text(ACCOUNT_NAME),
+      Text("Số tiền:"),
+      Text(amount),
+    ],
   );
 
   void _onShareAction() async {
@@ -177,19 +233,18 @@ class ResultPageState extends State<ResultPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text("Share result: ${result.status}"),
-          if (result.status == ShareResultStatus.success)
-            Text("Shared to: ${result.raw}"),
+          if (result.status == ShareResultStatus.success) Text("Shared to: ${result.raw}"),
         ],
       ),
     );
   }
 
-  String _getQRLink() => FORMULA_QR_LINK
+  String _getQRLink(String amount) => formulaQRLink
       .replaceAll(FORMULA_BANK_ID, BANK_ID)
       .replaceAll(FORMULA_ACCOUNT_NO, ACCOUNT_NO)
       .replaceAll(FORMULA_TEMPLATE, TEMPLATE)
       .replaceAll(FORMULA_ACCOUNT_NO, ACCOUNT_NO)
-      .replaceAll(FORMULA_AMOUNT, data.total.replaceAll(",", ""))
+      .replaceAll(FORMULA_AMOUNT, amount)
       .replaceAll(FORMULA_DESCRIPTION, DESCRIPTION)
       .replaceAll(FORMULA_ACCOUNT_NAME, ACCOUNT_NAME);
 }
