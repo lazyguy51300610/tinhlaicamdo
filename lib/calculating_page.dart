@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:date_picker_plus/date_picker_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -33,6 +35,8 @@ class _MyHomePageState extends State<_MyHomePage> {
 
   final numberFormater = NumberFormat("#,##0", "en_US");
 
+  final _formKey = GlobalKey<FormState>();
+
   DateTime? _dateFrom;
   DateTime _dateTo = DateTime.now();
   int _amount = 0;
@@ -47,13 +51,14 @@ class _MyHomePageState extends State<_MyHomePage> {
       ),
       body: Center(
         child: Container(
-          margin: const EdgeInsets.all(50.0),
+          margin: EdgeInsets.only(top: 20),
           width: 500,
-          child: Column(
-            children: [
-              SizedBox(
-                height: 70,
-                child: TextField(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              spacing: 10,
+              children: [
+                TextFormField(
                   controller: _amountController,
                   textAlign: TextAlign.right,
                   keyboardType: TextInputType.number,
@@ -63,24 +68,15 @@ class _MyHomePageState extends State<_MyHomePage> {
                     labelText: "Số tiền",
                   ),
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  onChanged: (value) {
-                    _amount = int.parse(value.replaceAll(",", ""));
-                    _amountController.text = numberFormater.format(_amount);
-                    _amountController.selection = TextSelection(
-                      baseOffset: _amountController.value.text.length,
-                      extentOffset: _amountController.value.text.length,
-                    );
-                  },
+                  onChanged: _onAmountChanged,
+                  validator: _onValidated,
                 ),
-              ),
-              SizedBox(
-                height: 70,
-                child: TextField(
+                TextFormField(
                   controller: _dateFromController,
                   textAlign: TextAlign.right,
                   readOnly: true,
                   onTap:
-                      () => _selectDate(
+                      () => _onDateSelected(
                         context,
                         _dateFromController,
                       ).then((value) => _dateFrom = value),
@@ -89,16 +85,14 @@ class _MyHomePageState extends State<_MyHomePage> {
                     prefixIcon: Icon(Icons.calendar_today),
                     labelText: "Ngày cầm đồ",
                   ),
+                  validator: _onValidated,
                 ),
-              ),
-              SizedBox(
-                height: 70,
-                child: TextField(
+                TextFormField(
                   controller: _dateToController,
                   textAlign: TextAlign.right,
                   readOnly: true,
                   onTap:
-                      () => _selectDate(
+                      () => _onDateSelected(
                         context,
                         _dateToController,
                       ).then((result) => _dateTo = result!),
@@ -107,32 +101,56 @@ class _MyHomePageState extends State<_MyHomePage> {
                     prefixIcon: Icon(Icons.calendar_today),
                     labelText: "Ngày chuột đồ",
                   ),
+                  validator: _onValidated,
                 ),
-              ),
-              OutlinedButton(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(primaryColor),
-                  padding: WidgetStateProperty.all(EdgeInsets.all(20)),
+                OutlinedButton(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all(primaryColor),
+                    padding: WidgetStateProperty.all(
+                      EdgeInsets.fromLTRB(40, 20, 40, 20),
+                    ),
+                  ),
+                  onPressed: _onCalculatePressed,
+                  child: Text(
+                    'Tính Lãi',
+                    style: TextStyle(fontSize: 20, color: Colors.white),
+                  ),
                 ),
-                onPressed: _onCalculatePressed,
-                child: Text(
-                  'Tính Lãi',
-                  style: TextStyle(fontSize: 20, color: Colors.white),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  String? _onValidated(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Vui lòng nhập vào";
+    }
+    return null;
+  }
+
+  void _onAmountChanged(String value) {
+    _amount = int.parse(value.replaceAll(",", ""));
+    _amountController.text = numberFormater.format(_amount);
+    _amountController.selection = TextSelection(
+      baseOffset: _amountController.value.text.length,
+      extentOffset: _amountController.value.text.length,
+    );
+  }
 
   void _onCalculatePressed() {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     var dateFrom = _formatDate(_dateFrom!);
     var dateTo = _formatDate(_dateTo);
     var nDate = _dateTo.difference(_dateFrom!).inDays;
     var interest = _amount * _interestRate * 0.01 / 30 * nDate;
+    interest = (interest * 1e-3).roundToDouble() * 1e3;
+    interest = max(interest, 10000);
     var total = _amount + interest;
 
     Navigator.push(
@@ -154,7 +172,7 @@ class _MyHomePageState extends State<_MyHomePage> {
     );
   }
 
-  Future<DateTime?> _selectDate(
+  Future<DateTime?> _onDateSelected(
     BuildContext context,
     TextEditingController controller,
   ) async {

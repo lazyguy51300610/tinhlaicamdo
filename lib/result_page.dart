@@ -1,14 +1,19 @@
 import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:widgets_to_image/widgets_to_image.dart';
 
 const MARGIN_VERTICAL = 2.0;
 const COLUMN_1_WIDTH = 200.0;
 const COLUMN_2_WIDTH = 300.0;
 const COLUMNS_WIDTH = COLUMN_1_WIDTH + COLUMN_2_WIDTH;
 
+const primaryColor = Color.fromARGB(255, 18, 180, 82);
+
 // ignore: constant_identifier_names
-const FONT_SIZE = 20.0;
+const FONT_SIZE = 15.0;
 
 const QR_LINK =
     "https://img.vietqr.io/image/KIENLONGBANK-TVHUYNH-qr_only.png?amount={amount}&addInfo=CK&accountName=NGUYEN%20VAN%20DUY";
@@ -50,10 +55,22 @@ class Data {
   );
 }
 
-class ResultPage extends StatelessWidget {
-  const ResultPage({super.key, required this.data});
+class ResultPage extends StatefulWidget {
+  ResultPage({super.key, required this.data});
 
   final Data data;
+
+  @override
+  State<StatefulWidget> createState() => ResultPageState(data: data);
+}
+
+class ResultPageState extends State<ResultPage> {
+  ResultPageState({required this.data});
+
+  final Data data;
+  final WidgetsToImageController _imageController = WidgetsToImageController();
+
+  Uint8List? _bytes;
 
   Widget myRowTemplate(String valueCell1, String valueCell2) => Container(
     margin: EdgeInsets.symmetric(vertical: MARGIN_VERTICAL),
@@ -67,7 +84,7 @@ class ResultPage extends StatelessWidget {
     // color: Colors.amberAccent,
     margin: EdgeInsets.only(left: 50),
     alignment: Alignment.centerLeft,
-    width: 200,
+    width: 150,
     child: Text(
       value,
       style: TextStyle(fontSize: FONT_SIZE, fontWeight: FontWeight.bold),
@@ -84,53 +101,85 @@ class ResultPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    log(_getQRLink());
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kết quả'),
-        backgroundColor: Colors.teal[100],
+        backgroundColor: primaryColor,
+        actions: [IconButton(onPressed: () {}, icon: Icon(Icons.share))],
       ),
-      body: Container(
-        margin: EdgeInsets.only(top: 50),
-        // color: Colors.redAccent,
-        child: Column(
-          children: [
-            myRowTemplate("Ngày cầm đồ", data.dateFrom),
-            myRowTemplate("Ngày chuột đồ", data.dateTo),
-            myRowTemplate("Số ngày chịu lãi", data.nDate),
+      body: WidgetsToImage(controller: _imageController, child: _billCard()),
+    );
+  }
 
-            Container(
-              height: 1,
-              width: COLUMNS_WIDTH,
-              margin: EdgeInsets.all(MARGIN_VERTICAL),
-              color: Colors.black,
-            ),
+  Widget _buildImage(Uint8List bytes) => Image.memory(bytes);
 
-            myRowTemplate("Lãi suất", data.interestRate),
-            myRowTemplate("Số tiền", data.amount),
-            myRowTemplate("Lãi", data.interest),
+  Widget _billCard() => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 60),
+    child: Column(
+      children: [
+        myRowTemplate("Ngày cầm đồ", data.dateFrom),
+        myRowTemplate("Ngày chuột đồ", data.dateTo),
+        myRowTemplate("Số ngày chịu lãi", data.nDate),
 
-            Container(
-              height: 1,
-              width: COLUMNS_WIDTH,
-              margin: EdgeInsets.all(MARGIN_VERTICAL),
-              color: Colors.black,
-            ),
-
-            myRowTemplate("Tổng cộng", data.total),
-
-            Container(
-              margin: EdgeInsets.all(70),
-              child: Center(
-                child: Image(
-                  image: NetworkImage(_getQRLink()),
-                  height: 150,
-                  fit: BoxFit.fill,
-                ),
-              ),
-            ),
-          ],
+        Container(
+          height: 1,
+          width: COLUMNS_WIDTH,
+          margin: EdgeInsets.all(MARGIN_VERTICAL),
+          color: Colors.black,
         ),
+
+        myRowTemplate("Lãi suất", data.interestRate),
+        myRowTemplate("Số tiền", data.amount),
+        myRowTemplate("Lãi", data.interest),
+
+        Container(
+          height: 1,
+          width: COLUMNS_WIDTH,
+          margin: EdgeInsets.all(MARGIN_VERTICAL),
+          color: Colors.black,
+        ),
+
+        myRowTemplate("Tổng cộng", data.total),
+
+        Container(
+          margin: EdgeInsets.only(top: 70),
+          child: Center(
+            child: Image(
+              image: NetworkImage(_getQRLink()),
+              height: 150,
+              fit: BoxFit.fill,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  void _onShareAction() async {
+    final bytes = await _imageController.capture();
+    setState(() {
+      _bytes = bytes;
+    });
+
+    if (bytes == null) {
+      return;
+    }
+
+    final imageFile = XFile.fromData(bytes!);
+    final result = await Share.shareXFiles([imageFile]);
+    ScaffoldMessenger.of(context).showSnackBar(_getResultSnackBar(result));
+  }
+
+  SnackBar _getResultSnackBar(ShareResult result) {
+    return SnackBar(
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Share result: ${result.status}"),
+          if (result.status == ShareResultStatus.success)
+            Text("Shared to: ${result.raw}"),
+        ],
       ),
     );
   }
