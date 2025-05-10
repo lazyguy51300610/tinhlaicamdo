@@ -2,10 +2,13 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
+import 'package:share_plus/share_plus.dart';
+
+import 'custom_button.dart';
 
 const MARGIN_VERTICAL = 2.0;
-const COLUMN_1_WIDTH = 150.0;
-const COLUMN_2_WIDTH = 150.0;
+const COLUMN_1_WIDTH = 200.0;
+const COLUMN_2_WIDTH = 200.0;
 const COLUMNS_WIDTH = COLUMN_1_WIDTH + COLUMN_2_WIDTH;
 
 const cellWidth = 550;
@@ -26,9 +29,10 @@ const FORMULA_DESCRIPTION = "<DESCRIPTION>";
 const FORMULA_ACCOUNT_NAME = "<ACCOUNT_NAME>";
 
 const BANK_ID = "KIENLONGBANK";
-const ACCOUNT_NO = "TVHUYNH";
-const ACCOUNT_NO_1 = "TVHUYNH1";
-const TEMPLATE = "qr_only";
+const account0 = "TVHUYNH";
+const account1 = "TVHUYNH1";
+const TEMPLATE_DEFAULT = "qr_only";
+const TEMPLATE_FULL = "print";
 //const AMOUNT = "<AMOUNT>";
 const DESCRIPTION = "CK";
 const ACCOUNT_NAME = "NGUYEN%20VAN%20DUY";
@@ -59,23 +63,22 @@ class ResultPage extends StatefulWidget {
   final Data myData;
 
   @override
-  // ignore: no_logic_in_create_state
-  State<StatefulWidget> createState() => ResultPageState(data: myData);
+  State<StatefulWidget> createState() => _ResultPageState();
 }
 
-class ResultPageState extends State<ResultPage> {
-  ResultPageState({required this.data});
+class _ResultPageState extends State<ResultPage> {
+  _ResultPageState();
 
-  final Data data;
-
-  final WidgetsToImageController _imageController = WidgetsToImageController();
+  final _imageController = WidgetsToImageController();
 
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: const Text('Kết quả', style: TextStyle(color: Colors.white)),
       backgroundColor: primaryColor,
-      actions: [IconButton(onPressed: () {}, icon: Icon(Icons.share), color: Colors.white)],
+      actions: [
+        IconButton(onPressed: _onShareButtonClicked, icon: Icon(Icons.share), color: Colors.white),
+      ],
     ),
     body: WidgetsToImage(controller: _imageController, child: _billCard(context)),
   );
@@ -84,9 +87,9 @@ class ResultPageState extends State<ResultPage> {
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 60),
     child: Column(
       children: [
-        KeyValueLine(keyText: "Ngày cầm đồ", valueText: data.dateFrom),
-        KeyValueLine(keyText: "Ngày chuột đồ", valueText: data.dateTo),
-        KeyValueLine(keyText: "Số ngày chịu lãi", valueText: data.nDate),
+        KeyValueLine(keyText: "Ngày cầm đồ", valueText: widget.myData.dateFrom),
+        KeyValueLine(keyText: "Ngày chuột đồ", valueText: widget.myData.dateTo),
+        KeyValueLine(keyText: "Số ngày chịu lãi", valueText: widget.myData.nDate),
 
         Container(
           height: 1,
@@ -95,9 +98,9 @@ class ResultPageState extends State<ResultPage> {
           color: Colors.black,
         ),
 
-        KeyValueLine(keyText: "Lãi suất", valueText: data.interestRate),
-        KeyValueLine(keyText: "Số tiền", valueText: data.amount),
-        KeyValueLine(keyText: "Lãi", valueText: data.interest),
+        KeyValueLine(keyText: "Lãi suất", valueText: widget.myData.interestRate),
+        KeyValueLine(keyText: "Số tiền", valueText: widget.myData.amount),
+        KeyValueLine(keyText: "Lãi", valueText: widget.myData.interest),
 
         Container(
           height: 1,
@@ -106,15 +109,21 @@ class ResultPageState extends State<ResultPage> {
           color: Colors.black,
         ),
 
-        KeyValueLine(keyText: "Tổng cộng", valueText: data.total),
+        KeyValueLine(keyText: "Tổng cộng", valueText: widget.myData.total),
 
         Container(
           margin: EdgeInsets.only(top: 20),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ResultPageButton(onPressed: _showInterestQR, text: "Đóng lãi"),
-              ResultPageButton(onPressed: _showTotalQR, text: "Chuột đồ"),
+              CustomButton(
+                onPressed: (context) => _showModalBottomSheet(widget.myData.interest),
+                text: "Đóng lãi",
+              ),
+              CustomButton(
+                onPressed: (context) => _showModalBottomSheet(widget.myData.total),
+                text: "Chuột đồ",
+              ),
             ],
           ),
         ),
@@ -122,70 +131,53 @@ class ResultPageState extends State<ResultPage> {
     ),
   );
 
-  void _showTotalQR(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder:
-          (context) => DefaultTabController(
-            initialIndex: 0,
-            length: 2,
-            child: Scaffold(
-              appBar: AppBar(title: const TabBar(tabs: [Tab(text: "Nha"), Tab(text: "Quay")])),
-              body: TabBarView(
-                children: [
-                  ListView(
-                    children: [
-                      _transferQR(ACCOUNT_NO, data.total.replaceAll(",", "")),
-                      _transferInfo(ACCOUNT_NO, data.total),
-                    ],
-                  ),
-
-                  ListView(
-                    children: [
-                      _transferQR(ACCOUNT_NO_1, data.total.replaceAll(",", "")),
-                      _transferInfo(ACCOUNT_NO_1, data.total),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-    );
+  void _onShareButtonClicked() async {
+    final imageUrl = _getQRLink(account0, "1000000", TEMPLATE_FULL);
+    final url = Uri.parse(imageUrl);
+    final result = await Share.shareUri(url);
+    if (result.status == ShareResultStatus.success) {
+      print("result.status == ShareResultStatus.success");
+    } else if (result.status == ShareResultStatus.dismissed) {
+      print("result.status == ShareResultStatus.dismissed");
+    } else if (result.status == ShareResultStatus.unavailable) {
+      print("result.status == ShareResultStatus.unavailable");
+    }
   }
 
-  void _showInterestQR(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder:
-          (context) => DefaultTabController(
-            initialIndex: 1,
+  void _showModalBottomSheet(String amount) => showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder:
+        (context) => FractionallySizedBox(
+          heightFactor: 0.7,
+          child: DefaultTabController(
+            initialIndex: 0,
             length: 2,
             child: Scaffold(
               appBar: AppBar(
                 automaticallyImplyLeading: false,
-                title: const TabBar(tabs: [Tab(text: "Nha"), Tab(text: "Quay")]),
+                title: const TabBar(tabs: [Tab(text: "Nhà"), Tab(text: "Quầy")]),
               ),
               body: TabBarView(
                 children: [
                   ListView(
                     children: [
-                      _transferQR(ACCOUNT_NO, data.interest.replaceAll(",", "")),
-                      _transferInfo(ACCOUNT_NO, data.interest),
+                      _transferQR(account0, amount.replaceAll(",", "")),
+                      _transferInfo(account0, amount),
                     ],
                   ),
-
                   ListView(
                     children: [
-                      _transferQR(ACCOUNT_NO_1, data.interest.replaceAll(",", "")),
-                      _transferInfo(ACCOUNT_NO_1, data.interest),
+                      _transferQR(account1, amount.replaceAll(",", "")),
+                      _transferInfo(account1, amount),
                     ],
                   ),
                 ],
               ),
             ),
           ),
-    );
-  }
+        ),
+  );
 
   Widget _transferQR(String accountNumberValue, String amountValue) => Container(
     margin: EdgeInsets.symmetric(vertical: 20),
@@ -199,7 +191,7 @@ class ResultPageState extends State<ResultPage> {
   );
 
   Widget _transferInfo(String accountNumberValue, String amountValue) => Container(
-    margin: EdgeInsets.symmetric(horizontal: 100),
+    margin: EdgeInsets.only(top: 10, left: 10, right: 10),
     child: GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
@@ -245,11 +237,11 @@ class ResultPageState extends State<ResultPage> {
     ),
   );
 
-  String _getQRLink(String accountNumber, String amount) {
+  String _getQRLink(String accountNumber, String amount, [String? template]) {
     var qrlink = formulaQRLink
         .replaceAll(FORMULA_BANK_ID, BANK_ID)
         .replaceAll(FORMULA_ACCOUNT_NO, accountNumber)
-        .replaceAll(FORMULA_TEMPLATE, TEMPLATE)
+        .replaceAll(FORMULA_TEMPLATE, template ?? TEMPLATE_DEFAULT)
         .replaceAll(FORMULA_AMOUNT, amount)
         .replaceAll(FORMULA_DESCRIPTION, DESCRIPTION)
         .replaceAll(FORMULA_ACCOUNT_NAME, ACCOUNT_NAME);
@@ -282,25 +274,5 @@ class KeyValueLine extends StatelessWidget {
     alignment: Alignment.centerRight,
     width: COLUMN_2_WIDTH,
     child: Text(value, style: TextStyle(fontSize: primaryFontSize)),
-  );
-}
-
-class ResultPageButton extends StatelessWidget {
-  final Function(BuildContext) onPressed;
-  final String text;
-
-  const ResultPageButton({super.key, required this.onPressed, required this.text});
-
-  @override
-  Widget build(BuildContext context) => Container(
-    margin: EdgeInsets.symmetric(horizontal: 10),
-    child: OutlinedButton(
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.all(primaryColor),
-        padding: WidgetStateProperty.all(EdgeInsets.symmetric(vertical: 20, horizontal: 40)),
-      ),
-      onPressed: () => onPressed(context),
-      child: Text(text, style: TextStyle(fontSize: 20, color: Colors.white)),
-    ),
   );
 }
